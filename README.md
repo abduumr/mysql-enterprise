@@ -39,8 +39,10 @@ if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
 
-export PATH=$PATH:/mysql/mysql-latest/bin
-export MYSQL_PS1="\\u on \\h>\\_"
+##############################################
+export PATH=$PATH:/mysql/mysql-latest/bin    #
+export MYSQL_PS1="\\u on \\h>\\_"            #
+##############################################
 
 [root@node03 ~]#
 ```
