@@ -1,8 +1,7 @@
 # mysql-enterprise
 
 
-"""
-
+```
 [root@node03 ~]# vi /etc/hosts
 [root@node03 ~]# cat /etc/hosts
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
@@ -12,4 +11,4 @@
 192.168.50.136 node03
 [root@node03 ~]#
 
-"""
+```
