@@ -12,7 +12,7 @@
 ```
 
 ```
-[root@node03 mysql]# sudo yum install -y ncurses-compat-libs
+[root@node01 mysql]# sudo yum install -y ncurses-compat-libs
 ```
 
 ```
@@ -45,37 +45,37 @@ export PATH=$PATH:/mysql/mysql-latest/bin
 export MYSQL_PS1="\\u on \\h>\\_"            
 ##############################################
 
-[root@node03 ~]#
+[root@node01 ~]#
 ```
 
 ```
-[root@node03 installer]# cd /mysql/installer
-[root@node03 mysql-commercial]# unzip p37497652_840_Linux-x86-64.zip
-[root@node03 mysql-commercial]# tar xvf mysql-commercial-8.4.4-1.1.el8.x86_64.repo.tar.gz
-[root@node03 mysql-commercial]# sudo dnf install ./mysql-commercial-*.rpm
+[root@node01 installer]# cd /mysql/installer
+[root@node01 mysql-commercial]# unzip p37497652_840_Linux-x86-64.zip
+[root@node01 mysql-commercial]# tar xvf mysql-commercial-8.4.4-1.1.el8.x86_64.repo.tar.gz
+[root@node01 mysql-commercial]# sudo dnf install ./mysql-commercial-*.rpm
 ```
 
 ```
-[root@node03 mysql-commercial]# cd mysql-8.4/8.4.4/
-[root@node03 8.4.4]# sudo dnf install ./mysql-commercial-*.rpm -y
-
-```
-
-```
-[root@node03 8.4.4]# systemctl enable mysqld
-[root@node03 8.4.4]# systemctl start mysqld
-[root@node03 8.4.4]# systemctl status mysqld
-```
-
-```
-[root@node03 8.4.4]# cp /usr/bin/mysq* /mysql/mysql-latest/bin/
-[root@node03 8.4.4]#
+[root@node01 mysql-commercial]# cd mysql-8.4/8.4.4/
+[root@node01 8.4.4]# sudo dnf install ./mysql-commercial-*.rpm -y
 
 ```
 
 ```
-[root@node03 8.4.4]# vi /etc/my.cnf
-[root@node03 8.4.4]# cat /etc/my.cnf
+[root@node01 8.4.4]# systemctl enable mysqld
+[root@node01 8.4.4]# systemctl start mysqld
+[root@node01 8.4.4]# systemctl status mysqld
+```
+
+```
+[root@node01 8.4.4]# cp /usr/bin/mysq* /mysql/mysql-latest/bin/
+[root@node01 8.4.4]#
+
+```
+
+```
+[root@node01 8.4.4]# vi /etc/my.cnf
+[root@node01 8.4.4]# cat /etc/my.cnf
 
 #datadir=/var/lib/mysql
 socket=/var/lib/mysql/mysql.sock
@@ -84,30 +84,35 @@ socket=/var/lib/mysql/mysql.sock
 pid-file=/var/run/mysqld/mysqld.pid
 
 #####################################
-datadir=/mysql/data                 #
-log-error=/mysql/log/mysqld.log     #
-bind-address = 0.0.0.0              #
-report_host = 192.168.242.136       #
+datadir=/mysql/data                 
+log-error=/mysql/log/mysqld.log     
+bind-address = 0.0.0.0              
+report_host = 192.168.50.127       
 #####################################
 
 ```
 
 ```
-[root@node03 8.4.4]# sudo yum install -y rsync
-[root@node03 8.4.4]# sudo rsync -av /var/lib/mysql/ /mysql/data/
-[root@node03 8.4.4]# cp /var/log/mysqld.log /mysql/log/
+[root@node01 8.4.4]# sudo yum install -y rsync
+[root@node01 8.4.4]# sudo rsync -av /var/lib/mysql/ /mysql/data/
+[root@node01 8.4.4]# cp /var/log/mysqld.log /mysql/log/
 
 ```
 
 ```
-[root@node03 8.4.4]# sudo setenforce 0
-[root@node03 8.4.4]# sudo systemctl restart mysqld
-[root@node03 8.4.4]# sudo systemctl status mysqld
+[root@node01 8.4.4]# sudo chown -R mysql:mysql /mysql /var/lib/mysql
+[root@node01 8.4.4]# sudo chmod -R 750 /mysql /var/lib/mysql
+```
+
+```
+[root@node01 8.4.4]# sudo setenforce 0
+[root@node01 8.4.4]# sudo systemctl restart mysqld
+[root@node01 8.4.4]# sudo systemctl status mysqld
 ```
 ```
-[root@node03 8.4.4]# grep 'temporary password' /mysql/log/mysqld.log
+[root@node01 8.4.4]# grep 'temporary password' /mysql/log/mysqld.log
 2025-02-12T06:10:04.134055Z 6 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: FidhFtbwJ4.y
-[root@node03 8.4.4]# /mysql/mysql-latest/bin/mysql_secure_installation -h127.0.0.1 -P3306
+[root@node01 8.4.4]# /mysql/mysql-latest/bin/mysql_secure_installation -h127.0.0.1 -P3306
 
 Securing the MySQL server deployment.
 
@@ -165,11 +170,11 @@ Reload privilege tables now? (Press y|Y for Yes, any other key for No) : y
 Success.
 
 All done!
-[root@node03 8.4.4]#
+[root@node01 8.4.4]#
 ```
 
 ```
-[root@node03 8.4.4]# mysql -uroot -pWelcome1! -h 127.0.0.1 -P3306
+[root@node01 8.4.4]# mysql -uroot -pWelcome1! -h 127.0.0.1 -P3306
 mysql: [Warning] Using a password on the command line interface can be insecure.
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 Your MySQL connection id is 12
