@@ -2,15 +2,13 @@
 
 
 ```
-[root@node03 ~]# vi /etc/hosts
-[root@node03 ~]# cat /etc/hosts
+[root@node01 ~]# cat /etc/hosts
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-192.168.242.8 node01
-192.168.242.9 node02
-192.168.50.136 node03
-[root@node03 ~]#
 
+192.168.50.127 node1
+192.168.50.132 node2
+192.168.50.136 node3
 ```
 
 ```
@@ -18,14 +16,17 @@
 ```
 
 ```
-[root@node03 mysql]# sudo mkdir /mysql/ /mysql/etc /mysql/data /mysql/installer 
-[root@node03 mysql]# sudo mkdir /mysql/log /mysql/temp /mysql/binlog /mysql/mysql-latest/bin
+[root@node01 mysql]# sudo mkdir -p /mysql/etc
+[root@node01 mysql]# sudo mkdir -p /mysql/data
+[root@node01 mysql]# sudo mkdir -p /mysql/installer
+[root@node01 mysql]# sudo mkdir -p /mysql/data 
+[root@node01 mysql]# sudo mkdir -p /mysql/mysql-latest/bin/
 ```
 
 ```
-[root@node03 mysql]# cd
-[root@node03 ~]# vi .bashrc
-[root@node03 ~]# cat .bashrc
+[root@node01 mysql]# cd
+[root@node01 ~]# vi .bashrc
+[root@node01 ~]# cat .bashrc
 # .bashrc
 
 # User specific aliases and functions
@@ -40,15 +41,15 @@ if [ -f /etc/bashrc ]; then
 fi
 
 ##############################################
-export PATH=$PATH:/mysql/mysql-latest/bin    #
-export MYSQL_PS1="\\u on \\h>\\_"            #
+export PATH=$PATH:/mysql/mysql-latest/bin    
+export MYSQL_PS1="\\u on \\h>\\_"            
 ##############################################
 
 [root@node03 ~]#
 ```
 
 ```
-[root@node03 installer]# cd /mysql/installer/mysql-commercial/
+[root@node03 installer]# cd /mysql/installer
 [root@node03 mysql-commercial]# unzip p37497652_840_Linux-x86-64.zip
 [root@node03 mysql-commercial]# tar xvf mysql-commercial-8.4.4-1.1.el8.x86_64.repo.tar.gz
 [root@node03 mysql-commercial]# sudo dnf install ./mysql-commercial-*.rpm
@@ -204,10 +205,76 @@ mysql>
 
 ```
 ```
+[root@node03 ~]# mysqlsh
+MySQL Shell 8.4.4-commercial
+
+Copyright (c) 2016, 2025, Oracle and/or its affiliates.
+Oracle is a registered trademark of Oracle Corporation and/or its affiliates.
+Other names may be trademarks of their respective owners.
+
+Type '\help' or '\?' for help; '\quit' to exit.
+ MySQL  SQL > \js
+Switching to JavaScript mode...
+ MySQL  JS > shell.connect("admin@192.168.50.136")
+Creating a session to 'admin@192.168.50.136'
+Please provide the password for 'admin@192.168.50.136': *********
+Save password for 'admin@192.168.50.136'? [Y]es/[N]o/Ne[v]er (default No): y
+Fetching schema names for auto-completion... Press ^C to stop.
+Your MySQL connection id is 9 (X protocol)
+Server version: 8.4.4-commercial MySQL Enterprise Server - Commercial
+No default schema selected; type \use <schema> to set one.
+<Session:admin@192.168.50.136:33060>
+ MySQL  192.168.50.136:33060+ ssl  JS >
+```
+
+```
+ MySQL  192.168.50.136:33060+ ssl  JS > dba.configureInstance('admin@192.168.50.136:3306')
+Configuring local MySQL instance listening at port 3306 for use in an InnoDB Cluster...
+
+This instance reports its own address as 192.168.50.136:3306
+
+applierWorkerThreads will be set to the default value of 4.
+
+NOTE: Some configuration options need to be fixed:
++--------------------------+---------------+----------------+--------------------------------------------------+
+| Variable                 | Current Value | Required Value | Note                                             |
++--------------------------+---------------+----------------+--------------------------------------------------+
+| enforce_gtid_consistency | OFF           | ON             | Update read-only variable and restart the server |
+| gtid_mode                | OFF           | ON             | Update read-only variable and restart the server |
+| server_id                | 1             | <unique ID>    | Update read-only variable and restart the server |
++--------------------------+---------------+----------------+--------------------------------------------------+
+
+Some variables need to be changed, but cannot be done dynamically on the server.
+Do you want to perform the required configuration changes? [y/n]: y
+Do you want to restart the instance after configuring it? [y/n]: y
+Configuring instance...
+The instance '192.168.50.136:3306' was configured to be used in an InnoDB Cluster.
+Restarting MySQL...
+NOTE: MySQL server at 192.168.50.136:3306 was restarted.
+ MySQL  19
+```
+```
 isi
 
 ```
 
+```
+isi
+
+```
+```
+isi
+
+```
+```
+isi
+
+```
+
+```
+isi
+
+```
 ```
 isi
 
