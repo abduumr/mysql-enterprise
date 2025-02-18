@@ -86,7 +86,7 @@ pid-file=/var/run/mysqld/mysqld.pid
 datadir=/mysql/data                 
 log-error=/mysql/log/mysqld.log     
 bind-address = 0.0.0.0              
-report_host = 192.168.50.127       
+report_host = 192.168.50.127   #perhatikan ip servernya    
 #####################################
 
 ```
