@@ -619,27 +619,127 @@ MySQL  192.168.50.127:3306 ssl  JS > var cluster = dba.getCluster()
 ```
 
 ```
-isi
+[root@node01 bin]# mysql -uadmin -pWelcome1! -h 127.0.0.1 -P6446
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 0
+Server version: 8.4.4-router MySQL Enterprise Server - Commercial
+
+Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+admin on 127.0.0.1> SELECT * FROM performance_schema.replication_group_members;
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST    | MEMBER_PORT | MEMBER_STATE | MEMBER_ROLE | MEMBER_VERSION | MEMBER_COMMUNICATION_STACK |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| group_replication_applier | 446de9a9-eab5-11ef-bb0d-000c29c4284f | 192.168.50.127 |        3306 | ONLINE       | PRIMARY     | 8.4.4          | MySQL                      |
+| group_replication_applier | afed1001-eab6-11ef-982c-000c2956de7c | 192.168.50.132 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
+| group_replication_applier | dcae9326-eab7-11ef-8c2b-000c2900b1cf | 192.168.50.136 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+3 rows in set (0.01 sec)
+
+admin on 127.0.0.1> \q
+Bye
+[root@node01 bin]# systemctl stop mysqld
+
+
 
 ```
 
 ```
-isi
+[root@node02 mysql-router]# mysql -uadmin -pWelcome1! -h 192.168.50.127 -P6446
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 0
+Server version: 8.4.4-router MySQL Enterprise Server - Commercial
+
+Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_members;
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+-----------------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST    | MEMBER_PORT | MEMBER_STATE | MEMBER_ROLE | M_COMMUNICATION_STACK |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+-----------------------+
+| group_replication_applier | afed1001-eab6-11ef-982c-000c2956de7c | 192.168.50.132 |        3306 | ONLINE       | PRIMARY     | 8                     |
+| group_replication_applier | dcae9326-eab7-11ef-8c2b-000c2900b1cf | 192.168.50.136 |        3306 | ONLINE       | SECONDARY   | 8                     |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+-----------------------+
+2 rows in set (0.00 sec)
+
 
 ```
 
 ```
-isi
+[root@node01 bin]# systemctl start mysqld
+
+admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_members;
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST    | MEMBER_PORT | MEMBER_STATE | MEMBER_ROLE | MEMBER_VERSION | MEMBER_COMMUNICATION_STACK |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| group_replication_applier | 446de9a9-eab5-11ef-bb0d-000c29c4284f | 192.168.50.127 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
+| group_replication_applier | afed1001-eab6-11ef-982c-000c2956de7c | 192.168.50.132 |        3306 | ONLINE       | PRIMARY     | 8.4.4          | MySQL                      |
+| group_replication_applier | dcae9326-eab7-11ef-8c2b-000c2900b1cf | 192.168.50.136 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+3 rows in set (0.00 sec)
+
+
 
 ```
 
 ```
-isi
+[root@node02 mysql-router]# mysqlsh
+MySQL Shell 8.4.1-commercial
+
+Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+Oracle is a registered trademark of Oracle Corporation and/or its affiliates.
+Other names may be trademarks of their respective owners.
+
+Type '\help' or '\?' for help; '\quit' to exit.
+ MySQL  SQL > \js
+Switching to JavaScript mode...
+ MySQL  JS > shell.connect('admin@192.168.50.127:3306')
+Creating a session to 'admin@192.168.50.127:3306'
+Please provide the password for 'admin@192.168.50.127:3306': *********
+Save password for 'admin@192.168.50.127:3306'? [Y]es/[N]o/Ne[v]er (default No): y
+Fetching schema names for auto-completion... Press ^C to stop.
+Your MySQL connection id is 36
+Server version: 8.4.4-commercial MySQL Enterprise Server - Commercial
+No default schema selected; type \use <schema> to set one.
+<ClassicSession:admin@192.168.50.127:3306>
+ MySQL  192.168.50.127:3306 ssl  JS > var cluster = dba.getCluster();
+ MySQL  192.168.50.127:3306 ssl  JS > cluster.setPrimaryInstance('192.168.50.127:3306');
+Setting instance '192.168.50.127:3306' as the primary instance of cluster 'InnodbPOCcluster'...
+
+Instance '192.168.50.136:3306' remains SECONDARY.
+Instance '192.168.50.127:3306' was switched from SECONDARY to PRIMARY.
+Instance '192.168.50.132:3306' was switched from PRIMARY to SECONDARY.
+
+The instance '192.168.50.127:3306' was successfully elected as primary.
+ MySQL  192.168.50.127:3306 ssl  JS >
+
 
 ```
 
 ```
-isi
+admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_members;
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST    | MEMBER_PORT | MEMBER_STATE | MEMBER_ROLE | MEMBER_VERSION | MEMBER_COMMUNICATION_STACK |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| group_replication_applier | 446de9a9-eab5-11ef-bb0d-000c29c4284f | 192.168.50.127 |        3306 | ONLINE       | PRIMARY     | 8.4.4          | MySQL                      |
+| group_replication_applier | afed1001-eab6-11ef-982c-000c2956de7c | 192.168.50.132 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
+| group_replication_applier | dcae9326-eab7-11ef-8c2b-000c2900b1cf | 192.168.50.136 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+3 rows in set (0.01 sec)
+
 
 ```
 
