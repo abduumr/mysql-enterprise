@@ -1,6 +1,6 @@
 # mysql-enterprise
 
-
+### referensi : https://deepakmysqldba.wordpress.com/2020/08/19/mysql-innodb-cluster-setup-step-by-step/
 ```
 [root@node01 ~]# cat /etc/hosts
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
@@ -505,22 +505,116 @@ The instance '192.168.50.136:3306' was successfully added to the cluster.
 
 ```
 ```
-isi
+[root@node01 mysql-router]# mkdir -p /mysql/installer/mysql-router/
+[root@node01 mysql-router]# cd  /mysql/installer/mysql-router/
+[root@node01 mysql-router]# unzip
+[root@node01 mysql-router]# chown -R mysql:mysql /mysql/
+[root@node01 mysql-router]# sudo rpm -ivh mysql-router-commercial-8.4.4-1.1.el8.x86_64.rpm
+[root@node01 mysql-router]# cp /usr/bin/mysqlroute* /mysql/mysql-latest/bin/
+[root@node01 bin]# chown -R mysql:mysql /mysql/
+
 
 ```
 
 ```
-isi
+[root@node01 mysql-router]# cd  /mysql/mysql-latest/bin/
+[root@node01 bin]# ./mysqlrouter --user=mysql --bootstrap admin@192.168.50.127:3306 --directory /mysql/installer/mysql-router/bin/ --conf-use-sockets
+Please enter MySQL password for admin:
+# Bootstrapping MySQL Router 8.4.4 (MySQL Enterprise - Commercial) instance at '/mysql/installer/mysql-router/bin'...
+
+- Creating account(s) (only those that are needed, if any)
+- Verifying account (using it to run SQL queries that would be run by Router)
+- Storing account in keyring
+- Adjusting permissions of generated files
+- Creating configuration /mysql/installer/mysql-router/bin/mysqlrouter.conf
+
+# MySQL Router configured for the InnoDB Cluster 'InnodbPOCcluster'
+
+After this MySQL Router has been started with the generated configuration
+
+    $ ./mysqlrouter -c /mysql/installer/mysql-router/bin/mysqlrouter.conf
+
+InnoDB Cluster 'InnodbPOCcluster' can be reached by connecting to:
+
+## MySQL Classic protocol
+
+- Read/Write Connections: localhost:6446, /mysql/installer/mysql-router/bin/mysql.sock
+- Read/Only Connections:  localhost:6447, /mysql/installer/mysql-router/bin/mysqlro.sock
+- Read/Write Split Connections: localhost:6450, /mysql/installer/mysql-router/bin/mysqlsplit.sock
+
+## MySQL X protocol
+
+- Read/Write Connections: localhost:6448, /mysql/installer/mysql-router/bin/mysqlx.sock
+- Read/Only Connections:  localhost:6449, /mysql/installer/mysql-router/bin/mysqlxro.sock
+
+[root@node01 bin]#
+
 
 ```
 
 ```
-isi
+[root@node01 bin]cd /mysql/installer/mysql-router/bin/
+[root@node01 bin]# ./start.sh
+[root@node01 bin]# PID 28505 written to '/mysql/installer/mysql-router/bin/mysqlrouter.pid'
+stopping to log to the console. Continuing to log to filelog
+
+[root@node01 bin]# ps aux | grep mysqlrouter
+root       28503  0.0  0.0 112732  7548 pts/0    S    11:21   0:00 sudo ROUTER_PID=/mysql/installer/mysql-router/bin/mysqlrouter.pid /mysql/mysql-latest/bin/mysqlrouter -c /mysql/installer/mysql-router/bin/mysqlrouter.conf --user=mysql
+mysql      28505  5.6  0.2 1149884 23044 pts/0   Sl   11:21   0:05 /mysql/mysql-latest/bin/mysqlrouter -c /mysql/installer/mysql-router/bin/mysqlrouter.conf --user=mysql
+root       28527  0.0  0.0  12144  1160 pts/0    S+   11:22   0:00 grep --color=auto mysqlrouter
+[root@node01 bin]#
+
 
 ```
 
 ```
-isi
+MySQL  192.168.50.127:3306 ssl  JS > var cluster = dba.getCluster()
+ MySQL  192.168.50.127:3306 ssl  JS > cluster.status()
+{
+    "clusterName": "InnodbPOCcluster",
+    "defaultReplicaSet": {
+        "name": "default",
+        "primary": "192.168.50.127:3306",
+        "ssl": "REQUIRED",
+        "status": "OK",
+        "statusText": "Cluster is ONLINE and can tolerate up to ONE failure.",
+        "topology": {
+            "192.168.50.127:3306": {
+                "address": "192.168.50.127:3306",
+                "memberRole": "PRIMARY",
+                "mode": "R/W",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.132:3306": {
+                "address": "192.168.50.132:3306",
+                "memberRole": "SECONDARY",
+                "mode": "R/O",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.136:3306": {
+                "address": "192.168.50.136:3306",
+                "memberRole": "SECONDARY",
+                "mode": "R/O",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            }
+        },
+        "topologyMode": "Single-Primary"
+    },
+    "groupInformationSourceMember": "192.168.50.127:3306"
+}
+ MySQL  192.168.50.127:3306 ssl  JS >
 
 ```
 
