@@ -759,28 +759,229 @@ admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_memb
 
 
 ```
+# membuat menjadi master to master (primary)
+```
+[root@node01 bin]# mysqlsh
+MySQL Shell 8.4.1-commercial
+
+Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+Oracle is a registered trademark of Oracle Corporation and/or its affiliates.
+Other names may be trademarks of their respective owners.
+
+Type '\help' or '\?' for help; '\quit' to exit.
+ MySQL  SQL > \js
+Switching to JavaScript mode...
+ MySQL  JS > shell.connect('admin@192.168.50.127')
+Creating a session to 'admin@192.168.50.127'
+Fetching schema names for auto-completion... Press ^C to stop.
+Your MySQL connection id is 2603 (X protocol)
+Server version: 8.4.4-commercial MySQL Enterprise Server - Commercial
+No default schema selected; type \use <schema> to set one.
+<Session:admin@192.168.50.127:33060>
+ MySQL  192.168.50.127:33060+ ssl  JS > var cluster = dba.getCluster()
+ MySQL  192.168.50.127:33060+ ssl  JS > cluster.status();
+{
+    "clusterName": "InnodbPOCcluster",
+    "defaultReplicaSet": {
+        "name": "default",
+        "primary": "192.168.50.127:3306",
+        "ssl": "REQUIRED",
+        "status": "OK",
+        "statusText": "Cluster is ONLINE and can tolerate up to ONE failure.",
+        "topology": {
+            "192.168.50.127:3306": {
+                "address": "192.168.50.127:3306",
+                "memberRole": "PRIMARY",
+                "mode": "R/W",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.132:3306": {
+                "address": "192.168.50.132:3306",
+                "memberRole": "SECONDARY",
+                "mode": "R/O",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.136:3306": {
+                "address": "192.168.50.136:3306",
+                "memberRole": "SECONDARY",
+                "mode": "R/O",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            }
+        },
+        "topologyMode": "Single-Primary"
+    },
+    "groupInformationSourceMember": "192.168.50.127:3306"
+}
+ MySQL  192.168.50.127:33060+ ssl  JS > cluster.switchToMultiPrimaryMode();
+Switching cluster 'InnodbPOCcluster' to Multi-Primary mode...
+
+Instance '192.168.50.127:3306' remains PRIMARY.
+Instance '192.168.50.132:3306' was switched from SECONDARY to PRIMARY.
+Instance '192.168.50.136:3306' was switched from SECONDARY to PRIMARY.
+
+The cluster successfully switched to Multi-Primary mode.
+ MySQL  192.168.50.127:33060+ ssl  JS > cluster.status();
+{
+    "clusterName": "InnodbPOCcluster",
+    "defaultReplicaSet": {
+        "name": "default",
+        "ssl": "REQUIRED",
+        "status": "OK",
+        "statusText": "Cluster is ONLINE and can tolerate up to ONE failure.",
+        "topology": {
+            "192.168.50.127:3306": {
+                "address": "192.168.50.127:3306",
+                "memberRole": "PRIMARY",
+                "mode": "R/W",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.132:3306": {
+                "address": "192.168.50.132:3306",
+                "memberRole": "PRIMARY",
+                "mode": "R/W",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.136:3306": {
+                "address": "192.168.50.136:3306",
+                "memberRole": "PRIMARY",
+                "mode": "R/W",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            }
+        },
+        "topologyMode": "Multi-Primary"
+    },
+    "groupInformationSourceMember": "192.168.50.127:3306"
+}
+ MySQL  192.168.50.127:33060+ ssl  JS >
+
 
 ```
-isi
+# verifikasikan status replika
+```
+[root@node02 mysql-router]# mysql -uadmin -pWelcome1! -h 192.168.50.127 -P6446
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 0
+Server version: 8.4.4-router MySQL Enterprise Server - Commercial
+
+Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_members;
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST    | MEMBER_PORT | MEMBER_STATE | MEMBER_ROLE | MEMBER_VERSION | MEMBER_COMMUNICATION_STACK |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| group_replication_applier | 446de9a9-eab5-11ef-bb0d-000c29c4284f | 192.168.50.127 |        3306 | ONLINE       | PRIMARY     | 8.4.4          | MySQL                      |
+| group_replication_applier | afed1001-eab6-11ef-982c-000c2956de7c | 192.168.50.132 |        3306 | ONLINE       | PRIMARY     | 8.4.4          | MySQL                      |
+| group_replication_applier | dcae9326-eab7-11ef-8c2b-000c2900b1cf | 192.168.50.136 |        3306 | ONLINE       | PRIMARY     | 8.4.4          | MySQL                      |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+3 rows in set (0.00 sec)
+
+admin on 192.168.50.127>
+
+```
+# mengembalikan menjadi single master (
+```
+ MySQL  192.168.50.127:33060+ ssl  JS > cluster.switchToSinglePrimaryMode();
+Switching cluster 'InnodbPOCcluster' to Single-Primary mode...
+
+Instance '192.168.50.127:3306' remains PRIMARY.
+Instance '192.168.50.132:3306' was switched from PRIMARY to SECONDARY.
+Instance '192.168.50.136:3306' was switched from PRIMARY to SECONDARY.
+
+WARNING: Existing connections that expected a R/W connection must be disconnected, i.e. instances that became SECONDARY.
+
+The cluster successfully switched to Single-Primary mode.
+ MySQL  192.168.50.127:33060+ ssl  JS > cluster.status();
+{
+    "clusterName": "InnodbPOCcluster",
+    "defaultReplicaSet": {
+        "name": "default",
+        "primary": "192.168.50.127:3306",
+        "ssl": "REQUIRED",
+        "status": "OK",
+        "statusText": "Cluster is ONLINE and can tolerate up to ONE failure.",
+        "topology": {
+            "192.168.50.127:3306": {
+                "address": "192.168.50.127:3306",
+                "memberRole": "PRIMARY",
+                "mode": "R/W",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.132:3306": {
+                "address": "192.168.50.132:3306",
+                "memberRole": "SECONDARY",
+                "mode": "R/O",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            },
+            "192.168.50.136:3306": {
+                "address": "192.168.50.136:3306",
+                "memberRole": "SECONDARY",
+                "mode": "R/O",
+                "readReplicas": {},
+                "replicationLag": "applier_queue_applied",
+                "role": "HA",
+                "status": "ONLINE",
+                "version": "8.4.4"
+            }
+        },
+        "topologyMode": "Single-Primary"
+    },
+    "groupInformationSourceMember": "192.168.50.127:3306"
+}
+ MySQL  192.168.50.127:33060+ ssl  JS >
+
+
+```
+# verifikasikan status replikasi (bebas)
+```
+admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_members;
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| CHANNEL_NAME              | MEMBER_ID                            | MEMBER_HOST    | MEMBER_PORT | MEMBER_STATE | MEMBER_ROLE | MEMBER_VERSION | MEMBER_COMMUNICATION_STACK |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+| group_replication_applier | 446de9a9-eab5-11ef-bb0d-000c29c4284f | 192.168.50.127 |        3306 | ONLINE       | PRIMARY     | 8.4.4          | MySQL                      |
+| group_replication_applier | afed1001-eab6-11ef-982c-000c2956de7c | 192.168.50.132 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
+| group_replication_applier | dcae9326-eab7-11ef-8c2b-000c2900b1cf | 192.168.50.136 |        3306 | ONLINE       | SECONDARY   | 8.4.4          | MySQL                      |
++---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
+3 rows in set (0.00 sec)
 
 ```
 
-```
-isi
 
-```
-
-```
-isi
-
-```
-
-```
-isi
-
-```
-
-```
-isi
-
-```
