@@ -1,6 +1,9 @@
 # mysql-enterprise
 
 ### referensi : https://deepakmysqldba.wordpress.com/2020/08/19/mysql-innodb-cluster-setup-step-by-step/
+
+
+# Setting host (all node)
 ```
 [root@node01 ~]# cat /etc/hosts
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
@@ -11,10 +14,11 @@
 192.168.50.136 node3
 ```
 
+# (all node)
 ```
 [root@node01 mysql]# sudo yum install -y ncurses-compat-libs
 ```
-
+# setting directory (all node)
 ```
 [root@node01 mysql]# sudo mkdir -p /mysql/etc
 [root@node01 mysql]# sudo mkdir -p /mysql/data
@@ -22,7 +26,7 @@
 [root@node01 mysql]# sudo mkdir -p /mysql/data 
 [root@node01 mysql]# sudo mkdir -p /mysql/mysql-latest/bin/
 ```
-
+# setting parameter OS (all node)
 ```
 [root@node01 mysql]# cd
 [root@node01 ~]# vi .bashrc
@@ -47,31 +51,26 @@ export MYSQL_PS1="\\u on \\h>\\_"
 
 [root@node01 ~]#
 ```
-
+# installasi mysql-commercial (all node)
 ```
 [root@node01 installer]# cd /mysql/installer
 [root@node01 mysql-commercial]# unzip p37497652_840_Linux-x86-64.zip
 [root@node01 mysql-commercial]# tar xvf mysql-commercial-8.4.4-1.1.el8.x86_64.repo.tar.gz
 [root@node01 mysql-commercial]# sudo dnf install ./mysql-commercial-*.rpm
-```
-
-```
 [root@node01 mysql-commercial]# cd mysql-8.4/8.4.4/
 [root@node01 8.4.4]# sudo dnf install ./mysql-commercial-*.rpm -y
-
-```
-
-```
 [root@node01 8.4.4]# systemctl enable mysqld
 [root@node01 8.4.4]# systemctl start mysqld
 [root@node01 8.4.4]# systemctl status mysqld
 ```
+# setting mysql-commercial mysql-commercial (all node)
 
 ```
 [root@node01 8.4.4]# cp /usr/bin/mysq* /mysql/mysql-latest/bin/
 [root@node01 8.4.4]#
 
 ```
+# setting my.cnf (all node)
 
 ```
 [root@node01 8.4.4]# vi /etc/my.cnf
@@ -91,24 +90,22 @@ report_host = 192.168.50.127
 #####################################
 
 ```
+# setting directory mysql-commercial (all node)
 
 ```
 [root@node01 8.4.4]# sudo yum install -y rsync
 [root@node01 8.4.4]# sudo rsync -av /var/lib/mysql/ /mysql/data/
 [root@node01 8.4.4]# cp /var/log/mysqld.log /mysql/log/
 
-```
-
-```
 [root@node01 8.4.4]# sudo chown -R mysql:mysql /mysql /var/lib/mysql
 [root@node01 8.4.4]# sudo chmod -R 750 /mysql /var/lib/mysql
-```
 
-```
 [root@node01 8.4.4]# sudo setenforce 0
 [root@node01 8.4.4]# sudo systemctl restart mysqld
 [root@node01 8.4.4]# sudo systemctl status mysqld
 ```
+# setting mysql-commercial (all node)
+
 ```
 [root@node01 8.4.4]# grep 'temporary password' /mysql/log/mysqld.log
 2025-02-12T06:10:04.134055Z 6 [Note] [MY-010454] [Server] A temporary password is generated for root@localhost: FidhFtbwJ4.y
@@ -172,6 +169,7 @@ Success.
 All done!
 [root@node01 8.4.4]#
 ```
+# setting user mysql (all node)
 
 ```
 [root@node01 8.4.4]# mysql -uroot -pWelcome1! -h 127.0.0.1 -P3306
@@ -190,9 +188,6 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 mysql>
 
-```
-```
-
 mysql> CREATE USER 'admin'@'%' IDENTIFIED BY 'Welcome1!';
 Query OK, 0 rows affected (0.11 sec)
 
@@ -201,14 +196,18 @@ Query OK, 0 rows affected (0.01 sec)
 
 mysql>
 
+
 ```
+
+# Installasi mysqlsh (all node)
 
 ```
 [root@node03 8.4.4]# cd /mysql/installer/mysql-shell/
 [root@node03 mysql-shell]# sudo rpm -ivh mysql-shell-commercial-8.4.4-1.1.el8.x86_64.rpm
 
-
 ```
+# Configurasi mysqlsh (node-01)
+
 ```
 [root@node01 ~]# mysqlsh
 MySQL Shell 8.4.1-commercial
@@ -230,6 +229,7 @@ Server version: 8.4.4-commercial MySQL Enterprise Server - Commercial
 No default schema selected; type \use <schema> to set one.
 <ClassicSession:admin@192.168.50.127:3306>
 ```
+# ConfigurasiInstance mysqlsh pada node01 (node-01)
 
 ```
  MySQL  192.168.50.127:33060+ ssl  JS > dba.configureInstance('admin@192.168.50.127:3306')
@@ -257,6 +257,8 @@ Restarting MySQL...
 NOTE: MySQL server at 192.168.50.127:3306 was restarted.
  MySQL  19
 ```
+# Checkinstanceconfigurasi mysqlsh pada node01 (node-01)
+
 ```
  MySQL  192.168.50.127:3306 ssl  JS > dba.checkInstanceConfiguration('admin@192.168.50.127:3306')
 Validating local MySQL instance listening at port 3306 for use in an InnoDB Cluster...
@@ -293,6 +295,7 @@ Cluster successfully created. Use Cluster.addInstance() to add MySQL instances.
 At least 3 instances are needed for the cluster to be able to withstand up to
 one server failure.
 ```
+# ConfigurasiInstance mysqlsh pada node02 (node-01)
 
 ```
  MySQL  192.168.50.127:3306 ssl  JS > dba.configureInstance('admin@192.168.50.132:3306')
@@ -322,6 +325,8 @@ Restarting MySQL...
 NOTE: MySQL server at 192.168.50.132:3306 was restarted.
 
 ```
+# ConfigurasiInstance mysqlsh pada node03 (node-01)
+
 ```
  MySQL  192.168.50.127:3306 ssl  JS > dba.configureInstance('admin@192.168.50.136:3306')
 Please provide the password for 'admin@192.168.50.136:3306': *********
@@ -350,6 +355,8 @@ Restarting MySQL...
 NOTE: MySQL server at 192.168.50.136:3306 was restarted.
 
 ```
+# addInstance mysqlsh pada node02 (node-01)
+
 ```
  MySQL  192.168.50.127:3306 ssl  JS > cluster.addInstance('admin@192.168.50.132:3306')
 
@@ -403,6 +410,7 @@ The instance '192.168.50.132:3306' was successfully added to the cluster.
 
 
 ```
+# addInstance mysqlsh pada node03 (node-01)
 
 ```
  MySQL  192.168.50.127:3306 ssl  JS > cluster.addInstance('admin@192.168.50.136:3306')
@@ -455,6 +463,8 @@ State recovery already finished for '192.168.50.136:3306'
 The instance '192.168.50.136:3306' was successfully added to the cluster.
 
 ```
+# Periksa cluster.status (node-01)
+
 ```
  MySQL  192.168.50.127:3306 ssl  JS > cluster.status()
 {
@@ -504,6 +514,8 @@ The instance '192.168.50.136:3306' was successfully added to the cluster.
  MySQL  192.168.50.127:3306 ssl  JS >
 
 ```
+# Installasi mysql-router (pada server yang dipasangkan mysql-router)
+
 ```
 [root@node01 mysql-router]# mkdir -p /mysql/installer/mysql-router/
 [root@node01 mysql-router]# cd  /mysql/installer/mysql-router/
@@ -515,6 +527,7 @@ The instance '192.168.50.136:3306' was successfully added to the cluster.
 
 
 ```
+# Configurasi mysql-router (pada server yang dipasangkan mysql-router)
 
 ```
 [root@node01 mysql-router]# cd  /mysql/mysql-latest/bin/
@@ -551,6 +564,7 @@ InnoDB Cluster 'InnodbPOCcluster' can be reached by connecting to:
 
 
 ```
+# Start mysql-router (pada server yang dipasangkan mysql-router)
 
 ```
 [root@node01 bin]cd /mysql/installer/mysql-router/bin/
@@ -566,6 +580,7 @@ root       28527  0.0  0.0  12144  1160 pts/0    S+   11:22   0:00 grep --color=
 
 
 ```
+# Periksa cluster.status (node-01)
 
 ```
 MySQL  192.168.50.127:3306 ssl  JS > var cluster = dba.getCluster()
@@ -617,6 +632,7 @@ MySQL  192.168.50.127:3306 ssl  JS > var cluster = dba.getCluster()
  MySQL  192.168.50.127:3306 ssl  JS >
 
 ```
+# Periksa replicasi (bebas)
 
 ```
 [root@node01 bin]# mysql -uadmin -pWelcome1! -h 127.0.0.1 -P6446
@@ -645,12 +661,15 @@ admin on 127.0.0.1> SELECT * FROM performance_schema.replication_group_members;
 
 admin on 127.0.0.1> \q
 Bye
+
+```
+# test-failover (node-01)
+```
 [root@node01 bin]# systemctl stop mysqld
-
-
 
 ```
 
+# verifikasi replikasi (bebas selain node01)
 ```
 [root@node02 mysql-router]# mysql -uadmin -pWelcome1! -h 192.168.50.127 -P6446
 mysql: [Warning] Using a password on the command line interface can be insecure.
@@ -677,7 +696,7 @@ admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_memb
 
 
 ```
-
+# test-failover (node-01)
 ```
 [root@node01 bin]# systemctl start mysqld
 
@@ -691,10 +710,8 @@ admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_memb
 +---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
 3 rows in set (0.00 sec)
 
-
-
 ```
-
+# membalikan node01 menjadi primary (bebass)
 ```
 [root@node02 mysql-router]# mysqlsh
 MySQL Shell 8.4.1-commercial
@@ -728,7 +745,7 @@ The instance '192.168.50.127:3306' was successfully elected as primary.
 
 
 ```
-
+# periksa replikasi (bebas)
 ```
 admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_members;
 +---------------------------+--------------------------------------+----------------+-------------+--------------+-------------+----------------+----------------------------+
