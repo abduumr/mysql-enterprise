@@ -2,6 +2,15 @@
 
 ### referensi : https://deepakmysqldba.wordpress.com/2020/08/19/mysql-innodb-cluster-setup-step-by-step/
 
+```
+192.168.50.127 node1
+192.168.50.132 node2
+192.168.50.136 node3
+192.168.50.127 mysql-router-1
+192.168.50.114 mysql-router-2
+192.168.50.100 keepalived
+
+```
 
 # Setting host (all node)
 ```
@@ -984,4 +993,193 @@ admin on 192.168.50.127> SELECT * FROM performance_schema.replication_group_memb
 
 ```
 
+# menambahkan mysql-router-2
 
+
+```
+[root@localhost bin]cd /mysql/installer/mysql-router/bin/
+[root@localhost bin]# ./start.sh
+[root@localhost bin]# PID 28505 written to '/mysql/installer/mysql-router/bin/mysqlrouter.pid'
+stopping to log to the console. Continuing to log to filelog
+
+[root@localhost bin]# ps aux | grep mysqlrouter
+root       28503  0.0  0.0 112732  7548 pts/0    S    11:21   0:00 sudo ROUTER_PID=/mysql/installer/mysql-router/bin/mysqlrouter.pid /mysql/mysql-latest/bin/mysqlrouter -c /mysql/installer/mysql-router/bin/mysqlrouter.conf --user=mysql
+mysql      28505  5.6  0.2 1149884 23044 pts/0   Sl   11:21   0:05 /mysql/mysql-latest/bin/mysqlrouter -c /mysql/installer/mysql-router/bin/mysqlrouter.conf --user=mysql
+root       28527  0.0  0.0  12144  1160 pts/0    S+   11:22   0:00 grep --color=auto mysqlrouter
+[root@localhost bin]#
+
+```
+
+# menambahkan keepalived (mysql-router1[node01])
+
+```
+[root@node01 bin]#sudo yum install keepalived -y
+[root@node01 bin]# mv /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bkp
+[root@node01 bin]# vi /etc/keepalived/keepalived.conf
+[root@node01 bin]# cat /etc/keepalived/keepalived.conf
+[root@node01 bin]# cat /etc/keepalived/keepalived.conf
+global_defs {
+    router_id MYSQL_ROUTER_1
+}
+
+vrrp_script chk_mysqlrouter {
+    script "/usr/bin/pidof mysqlrouter"
+    interval 2
+    weight 2
+}
+
+vrrp_instance VI_1 {
+    interface ens192  # Sesuaikan dengan interface yang digunakan
+    state MASTER
+    virtual_router_id 51
+    priority 100
+    unicast_src_ip 192.168.50.127
+    unicast_peer {
+        192.168.50.114
+    }
+    virtual_ipaddress {
+        192.168.50.100
+    }
+    track_script {
+        chk_mysqlrouter
+    }
+}
+
+```
+```
+[root@node01 bin]# systemctl enable keepalived
+[root@node01 bin]# systemctl start keepalived
+[root@node01 bin]# systemctl status keepalived
+● keepalived.service - LVS and VRRP High Availability Monitor
+   Loaded: loaded (/usr/lib/systemd/system/keepalived.service; enabled; vendor preset: disabled)
+   Active: active (running) since Thu 2025-02-20 15:48:18 WIB; 7s ago
+  Process: 35001 ExecStart=/usr/sbin/keepalived $KEEPALIVED_OPTIONS (code=exited, status=0/SUCCESS)
+ Main PID: 35004 (keepalived)
+    Tasks: 2 (limit: 48452)
+   Memory: 1.8M
+   CGroup: /system.slice/keepalived.service
+           ├─35004 /usr/sbin/keepalived -D
+           └─35005 /usr/sbin/keepalived -D
+
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: (VI_1) received lower priority (92) advert from 192.168.50.114 - discarding
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: (VI_1) Receive advertisement timeout
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: (VI_1) Entering MASTER STATE
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: (VI_1) setting VIPs.
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: (VI_1) Sending/queueing gratuitous ARPs on ens192 for 192.168.50.100
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: Sending gratuitous ARP on ens192 for 192.168.50.100
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: Sending gratuitous ARP on ens192 for 192.168.50.100
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: Sending gratuitous ARP on ens192 for 192.168.50.100
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: Sending gratuitous ARP on ens192 for 192.168.50.100
+Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: Sending gratuitous ARP on ens192 for 192.168.50.100
+
+```
+```
+[root@node01 bin]# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: ens192: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:0c:29:c4:28:4f brd ff:ff:ff:ff:ff:ff
+    altname enp11s0
+    inet 192.168.50.127/24 brd 192.168.50.255 scope global dynamic noprefixroute ens192
+       valid_lft 471sec preferred_lft 471sec
+    inet 192.168.50.100/32 scope global ens192
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:fec4:284f/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+3: tun0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UNKNOWN group default qlen 100
+    link/none
+    inet 192.168.242.8/24 brd 192.168.242.255 scope global tun0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::de5f:a02d:fe0b:529a/64 scope link stable-privacy
+       valid_lft forever preferred_lft forever
+```
+
+# menambahkan keepalived (mysql-router2)
+
+```
+[root@node01 bin]#sudo yum install keepalived -y
+[root@node01 bin]# mv /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bkp
+[root@node01 bin]# vi /etc/keepalived/keepalived.conf
+[root@node01 bin]# cat /etc/keepalived/keepalived.conf
+global_defs {
+    router_id MYSQL_ROUTER_2
+}
+
+vrrp_script chk_mysqlrouter {
+    script "/usr/bin/pidof mysqlrouter"
+    interval 2
+    weight 2
+}
+
+vrrp_instance VI_1 {
+    interface ens192  # Sesuaikan dengan interface yang digunakan
+    state BACKUP
+    virtual_router_id 51
+    priority 90
+    unicast_src_ip 192.168.50.114
+    unicast_peer {
+        192.168.50.127
+    }
+    virtual_ipaddress {
+        192.168.50.100
+    }
+    track_script {
+        chk_mysqlrouter
+    }
+}
+
+```
+
+```
+[root@localhost sbin]#  systemctl enable keepalived
+[root@localhost sbin]#  systemctl start keepalived
+[root@localhost sbin]# systemctl status keepalived
+● keepalived.service - LVS and VRRP High Availability Monitor
+   Loaded: loaded (/usr/lib/systemd/system/keepalived.service; enabled; vendor preset: disabled)
+   Active: active (running) since Thu 2025-02-20 15:49:14 WIB; 10s ago
+  Process: 3209063 ExecStart=/usr/sbin/keepalived $KEEPALIVED_OPTIONS (code=exited, status=0/SUCCESS)
+ Main PID: 3209065 (keepalived)
+    Tasks: 2 (limit: 100866)
+   Memory: 1.8M
+   CGroup: /system.slice/keepalived.service
+           ├─3209065 /usr/sbin/keepalived -D
+           └─3209066 /usr/sbin/keepalived -D
+
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: WARNING - default user 'keepalived_script' for script execution does not exist - please>
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: SECURITY VIOLATION - scripts are being executed but script_security not enabled.
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: Assigned address 192.168.50.114 for interface ens192
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: Assigned address fe80::20c:29ff:fe18:394d for interface ens192
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: Registering gratuitous ARP shared channel
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: (VI_1) removing VIPs.
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: (VI_1) Entering BACKUP STATE (init)
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: VRRP sockpool: [ifindex(  2), family(IPv4), proto(112), fd(11,14), unicast, address(192>
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: VRRP_Script(chk_mysqlrouter) succeeded
+Feb 20 15:49:14 localhost.localdomain Keepalived_vrrp[3209066]: (VI_1) Changing effective priority from 90 to 92
+
+
+```
+
+```
+[root@localhost sbin]# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: ens192: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether 00:0c:29:18:39:4d brd ff:ff:ff:ff:ff:ff
+    altname enp11s0
+    inet 192.168.50.114/24 brd 192.168.50.255 scope global dynamic noprefixroute ens192
+       valid_lft 545sec preferred_lft 545sec
+    inet 192.168.50.100/24 scope global secondary ens192
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:fe18:394d/64 scope link noprefixroute
+       valid_lft forever preferred_lft forever
+[root@localhost sbin]#
+
+```
