@@ -1080,9 +1080,9 @@ global_defs {
 }
 
 vrrp_script chk_mysqlrouter {
-    script "/usr/bin/pidof mysqlrouter"
+    script "/usr/local/bin/check_mysqlrouter.sh"
     interval 2
-    weight 2
+    weight -20  # Jika script gagal, turunkan prioritas agar failover terjadi
 }
 
 vrrp_instance VI_1 {
@@ -1103,6 +1103,23 @@ vrrp_instance VI_1 {
 }
 
 ```
+### buat script untuk memeriksa mysqlrouter jalan
+```
+[root@localhost ~]# vi /usr/local/bin/check_mysqlrouter.sh
+[root@localhost ~]# cat /usr/local/bin/check_mysqlrouter.sh
+#!/bin/bash
+
+# Periksa apakah MySQL Router berjalan
+if ! pgrep -x "mysqlrouter" > /dev/null; then
+    exit 1  # Jika MySQL Router mati, return status error
+else
+    exit 0  # Jika MySQL Router hidup, return status sukses
+fi
+
+[root@localhost ~]# sudo chmod +x /usr/local/bin/check_mysqlrouter.sh
+
+```
+
 ```
 [root@node01 bin]# systemctl enable keepalived
 [root@node01 bin]# systemctl start keepalived
@@ -1158,18 +1175,18 @@ Feb 20 15:48:21 node01 Keepalived_vrrp[35005]: Sending gratuitous ARP on ens192 
 # menambahkan keepalived (mysql-router2)
 
 ```
-[root@node01 bin]#sudo yum install keepalived -y
-[root@node01 bin]# mv /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bkp
-[root@node01 bin]# vi /etc/keepalived/keepalived.conf
-[root@node01 bin]# cat /etc/keepalived/keepalived.conf
+[root@localhost bin]#sudo yum install keepalived -y
+[root@localhost bin]# mv /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bkp
+[root@localhost bin]# vi /etc/keepalived/keepalived.conf
+[root@localhost ~]# cat /etc/keepalived/keepalived.conf
 global_defs {
     router_id MYSQL_ROUTER_2
 }
 
 vrrp_script chk_mysqlrouter {
-    script "/usr/bin/pidof mysqlrouter"
+    script "/usr/local/bin/check_mysqlrouter.sh"
     interval 2
-    weight 2
+    weight -20  # Jika script gagal, turunkan prioritas agar failover terjadi
 }
 
 vrrp_instance VI_1 {
@@ -1188,6 +1205,22 @@ vrrp_instance VI_1 {
         chk_mysqlrouter
     }
 }
+
+```
+### buat script untuk memeriksa mysqlrouter jalan
+```
+[root@localhost ~]# vi /usr/local/bin/check_mysqlrouter.sh
+[root@localhost ~]# cat /usr/local/bin/check_mysqlrouter.sh
+#!/bin/bash
+
+# Periksa apakah MySQL Router berjalan
+if ! pgrep -x "mysqlrouter" > /dev/null; then
+    exit 1  # Jika MySQL Router mati, return status error
+else
+    exit 0  # Jika MySQL Router hidup, return status sukses
+fi
+
+[root@localhost ~]# sudo chmod +x /usr/local/bin/check_mysqlrouter.sh
 
 ```
 
