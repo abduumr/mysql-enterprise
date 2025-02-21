@@ -617,7 +617,6 @@ WantedBy=multi-user.target
 [root@node01 bin]# sudo systemctl status mysqlrouter
 
 ```
-
 # Periksa cluster.status (node-01)
 
 ```
@@ -1038,12 +1037,12 @@ root       28527  0.0  0.0  12144  1160 pts/0    S+   11:22   0:00 grep --color=
 [root@localhost bin]#
 
 ```
-# Edit systemd mysql-router (pada server yang dipasangkan mysql-router)
+# Edit systemd mysql-router (mysql-router2)
 
 ```
-[root@node01 bin]# mv /etc/systemd/system/mysqlrouter.service /etc/systemd/system/mysqlrouter.service.bkp
-[root@node01 bin]# vi /usr/lib/systemd/system/mysqlrouter.service
-[root@node01 bin]# cat /usr/lib/systemd/system/mysqlrouter.service
+[root@localhost bin]# mv /usr/lib/systemd/system/mysqlrouter.service /usr/lib/systemd/system/mysqlrouter.service.bkp
+[root@localhost bin]# vi /usr/lib/systemd/system/mysqlrouter.service
+[root@localhost bin]# cat /usr/lib/systemd/system/mysqlrouter.service
 [Unit]
 Description=MySQL Router
 After=network-online.target
@@ -1062,9 +1061,9 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 
-[root@node01 bin]# sudo systemctl daemon-reload
-[root@node01 bin]# sudo systemctl restart mysqlrouter
-[root@node01 bin]# sudo systemctl status mysqlrouter
+[root@localhost bin]# sudo systemctl daemon-reload
+[root@localhost bin]# sudo systemctl restart mysqlrouter
+[root@localhost bin]# sudo systemctl status mysqlrouter
 
 ```
 
