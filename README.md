@@ -587,8 +587,37 @@ mysql      28505  5.6  0.2 1149884 23044 pts/0   Sl   11:21   0:05 /mysql/mysql-
 root       28527  0.0  0.0  12144  1160 pts/0    S+   11:22   0:00 grep --color=auto mysqlrouter
 [root@node01 bin]#
 
+```
+# Edit systemd mysql-router (pada server yang dipasangkan mysql-router)
 
 ```
+[root@node01 bin]# mv /etc/systemd/system/mysqlrouter.service /etc/systemd/system/mysqlrouter.service.bkp
+[root@node01 bin]# vi /usr/lib/systemd/system/mysqlrouter.service
+[root@node01 bin]# cat /usr/lib/systemd/system/mysqlrouter.service
+[Unit]
+Description=MySQL Router
+After=network-online.target
+Wants=network-online.target
+After=syslog.target
+
+[Service]
+Type=forking
+User=mysql
+Group=mysql
+
+ExecStart=/mysql/installer/mysql-router/bin/start.sh
+ExecStop=/mysql/installer/mysql-router/bin/stop.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+[root@node01 bin]# sudo systemctl daemon-reload
+[root@node01 bin]# sudo systemctl restart mysqlrouter
+[root@node01 bin]# sudo systemctl status mysqlrouter
+
+```
+
 # Periksa cluster.status (node-01)
 
 ```
@@ -1007,6 +1036,35 @@ root       28503  0.0  0.0 112732  7548 pts/0    S    11:21   0:00 sudo ROUTER_P
 mysql      28505  5.6  0.2 1149884 23044 pts/0   Sl   11:21   0:05 /mysql/mysql-latest/bin/mysqlrouter -c /mysql/installer/mysql-router/bin/mysqlrouter.conf --user=mysql
 root       28527  0.0  0.0  12144  1160 pts/0    S+   11:22   0:00 grep --color=auto mysqlrouter
 [root@localhost bin]#
+
+```
+# Edit systemd mysql-router (pada server yang dipasangkan mysql-router)
+
+```
+[root@node01 bin]# mv /etc/systemd/system/mysqlrouter.service /etc/systemd/system/mysqlrouter.service.bkp
+[root@node01 bin]# vi /usr/lib/systemd/system/mysqlrouter.service
+[root@node01 bin]# cat /usr/lib/systemd/system/mysqlrouter.service
+[Unit]
+Description=MySQL Router
+After=network-online.target
+Wants=network-online.target
+After=syslog.target
+
+[Service]
+Type=forking
+User=mysql
+Group=mysql
+
+ExecStart=/mysql/installer/mysql-router/bin/start.sh
+ExecStop=/mysql/installer/mysql-router/bin/stop.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+[root@node01 bin]# sudo systemctl daemon-reload
+[root@node01 bin]# sudo systemctl restart mysqlrouter
+[root@node01 bin]# sudo systemctl status mysqlrouter
 
 ```
 
