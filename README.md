@@ -588,10 +588,10 @@ root       28527  0.0  0.0  12144  1160 pts/0    S+   11:22   0:00 grep --color=
 [root@node01 bin]#
 
 ```
-# Edit systemd mysql-router (pada server yang dipasangkan mysql-router)
+### Edit systemd mysql-router (pada server yang dipasangkan mysql-router)
 
 ```
-[root@node01 bin]# mv /etc/systemd/system/mysqlrouter.service /etc/systemd/system/mysqlrouter.service.bkp
+[root@node01 bin]# mv /usr/lib/systemd/system/mysqlrouter.service /usr/lib/systemd/system/mysqlrouter.service.bkp
 [root@node01 bin]# vi /usr/lib/systemd/system/mysqlrouter.service
 [root@node01 bin]# cat /usr/lib/systemd/system/mysqlrouter.service
 [Unit]
